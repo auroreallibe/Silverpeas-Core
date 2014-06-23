@@ -80,14 +80,11 @@ if ("personalQuestion".equalsIgnoreCase(pwdResetBehavior)) {
   urlToForgottenPwd = m_sContext+"/CredentialsServlet/LoginQuestion";
 }
 %>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title></title>
-<%
-out.println(gef.getLookStyleSheet());
-%>
+<view:looknfeel/>
 <!-- Add JQuery mask plugin css -->
 <link href="<%=m_sContext%>/util/styleSheets/jquery.loadmask.css" rel="stylesheet" type="text/css" />
 
@@ -107,6 +104,18 @@ out.println(gef.getLookStyleSheet());
 <script type="text/javascript" src="<%=m_sContext%>/util/javaScript/lookV5/login.js"></script>
 
 <script type="text/javascript">
+
+
+	if (navigator.userAgent.match(/(android|iphone|ipad|blackberry|symbian|symbianos|symbos|netfront|model-orange|javaplatform|iemobile|windows phone|samsung|htc|opera mobile|opera mobi|opera mini|presto|huawei|blazer|bolt|doris|fennec|gobrowser|iris|maemo browser|mib|cldc|minimo|semc-browser|skyfire|teashark|teleca|uzard|uzardweb|meego|nokia|bb10|playbook)/gi)) {
+		if ( ((screen.width  >= 480) && (screen.height >= 800)) || ((screen.width  >= 800) && (screen.height >= 480)) || navigator.userAgent.match(/ipad/gi) ) {
+			var ss = document.createElement("link");
+				ss.type = "text/css";
+				ss.rel = "stylesheet";
+				ss.href = "<%=m_sContext%>/util/styleSheets/domainsBar-tablette.css";
+			document.getElementsByTagName("head")[0].appendChild(ss);
+
+		}
+	}
 
   function reloadTopBar(reload)
   {
