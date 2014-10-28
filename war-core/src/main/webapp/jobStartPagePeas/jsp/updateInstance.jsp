@@ -37,18 +37,21 @@ void displayParameter(LocalizedParameter parameter, ResourcesWrapper resource, J
 
 	if (help != null) {
 		help = EncodeHelper.javaStringToHtmlString(help);
-	  	out.println("<td valign=\"top\" align=\"left\">");
-		out.print("<img src=\""+resource.getIcon("JSPP.instanceHelpInfo")+"\" title=\""+help+"\" class=\"parameterInfo\"/>");
-		out.println("</td>");
-	} else {
-		out.println("<td width=\"15\">&nbsp;</td>");
-	}
-	out.println("<td class=\"intfdcolor4\" nowrap=\"nowrap\" valign=\"center\" align=\"left\">");
-	out.println("<span class=\"txtlibform\">"+parameter.getLabel()+" : </span>");
-	out.println("</td>");
-	out.println("<td class=\"intfdcolor4\" align=\"left\" valign=\"top\">");
 
-	String disabled = "disabled";
+	  	out.println("<li class='field' id='"+parameter.getName()+"'>");
+		out.print("<img src=\""+resource.getIcon("JSPP.instanceHelpInfo")+"\" title=\""+help+"\" class=\"parameterInfo\"/>");
+
+	} else {
+
+		out.println("<li class='field' id='"+parameter.getName()+"'>");
+	}
+
+	out.println("<label class='txtlibform'>"+parameter.getLabel()+" : </label>");
+
+
+	out.println("<div class='champs'>");
+
+	String disabled = "disabled=\"disabled\"";
 	if (parameter.isAlwaysUpdatable()) {
         disabled = "";
     }
@@ -56,7 +59,7 @@ void displayParameter(LocalizedParameter parameter, ResourcesWrapper resource, J
 	if (parameter.isCheckbox()) {
 		String checked = "";
 		if (StringUtil.getBooleanValue(parameter.getValue())) {
-			checked = "checked";
+			checked = "checked=\"checked\"";
 		}
 		out.println("<input type=\"checkbox\" name=\""+parameter.getName()+"\" value=\""+parameter.getValue()+"\" "+checked+" "+disabled+">");
     if (StringUtil.isDefined(parameter.getWarning())) {
@@ -90,7 +93,7 @@ void displayParameter(LocalizedParameter parameter, ResourcesWrapper resource, J
 	          String value = radio.getValue();
 	          String checked = "";
 	          if (parameter.getValue() != null && parameter.getValue().toLowerCase().equals(value) || i == 0) {
-	            checked = " checked";
+	            checked = "checked=\"checked\"";
 	          }
 	          out.println("<input type=\"radio\" name=\"" + parameter.getName() + "\" value=\"" + value + "\"" + checked + ">");
 	          out.println(name + "&nbsp;<br/>");
@@ -98,7 +101,8 @@ void displayParameter(LocalizedParameter parameter, ResourcesWrapper resource, J
 		} else {
 			out.println(parameter.getValue());
 		}
-		out.println("</td>");
+
+
 	} else {
 		// check if parameter is mandatory or not
 		boolean mandatory = parameter.isMandatory();;
@@ -119,7 +123,7 @@ void displayParameter(LocalizedParameter parameter, ResourcesWrapper resource, J
 			out.println("&nbsp;<img src=\""+resource.getIcon("mandatoryField")+"\" width=\"5\" height=\"5\" border=\"0\"/>");
 		}
 	}
-	out.println("</td>");
+	out.println("</div></li>");
 }
 
 %>
@@ -163,8 +167,10 @@ for (ProfileInst theProfile : m_Profiles) {
 <head>
 <title><%=resource.getString("GML.popupTitle")%></title>
 <view:looknfeel/>
+<link type="text/css" href="/silverpeas/util/styleSheets/fieldset.css" rel="stylesheet" />
 <view:includePlugin name="qtip"/>
 <view:includePlugin name="popup"/>
+<script type="text/javascript" src="<%=m_context%>/util/javaScript/animation.js"></script>
 <script type="text/javascript" src="<%=m_context%>/util/javaScript/checkForm.js"></script>
 <script type="text/javascript" src="<%=m_context%>/util/javaScript/i18n.js"></script>
 <script type="text/javascript" src="javascript/component.js"></script>
@@ -246,7 +252,6 @@ function isCorrectForm() {
 	    break;
 	}
 	return result;
-
 }
 
 function toDoOnLoad() {
@@ -270,6 +275,12 @@ function removeTranslation() {
 }
 
 </script>
+
+<style type="text/css">
+#login, #nameParam1{
+	clear:both;
+}
+</style>
 </head>
 <body id="admin-component" onload="javascript:toDoOnLoad()">
 <form name="infoInstance" action="EffectiveUpdateInstance" method="post">
@@ -277,97 +288,73 @@ function removeTranslation() {
 out.println(window.printBefore());
 out.println(tabbedPane.print());
 out.println(frame.printBefore());
-out.println(board.printBefore());
+
 %>
-<table cellpadding="5" cellspacing="0" border="0" width="100%">
-	<tr>
-		<td class="txtlibform"><%=resource.getString("GML.type")%> :</td>
-		<td><img src="<%=m_ComponentIcon%>" class="componentIcon" alt=""/>&nbsp;<%=m_JobPeas%></td>
-	</tr>
+
+<fieldset class="skinFieldset">
+	<legend class="without-img"><img src="<%=m_ComponentIcon%>" class="componentIcon" alt=""/>&nbsp;<%=m_JobPeas%></legend>
+
+
 	<%=I18NHelper.getFormLine(resource, compoInst, translation)%>
-	<tr>
-		<td class="txtlibform"><%=resource.getString("GML.name")%> :</td>
-		<td><input type="text" name="NameObject" id="compoName" size="60" maxlength="60" value="<%=EncodeHelper.javaStringToHtmlString(compoInst.getLabel())%>">&nbsp;<img src="<%=resource.getIcon("mandatoryField")%>" width="5" height="5" border="0"></td>
-	</tr>
-	<tr>
-		<td class="txtlibform" valign="top"><%=resource.getString("GML.description")%> :</td>
-		<td><textarea name="Description" id="compoDesc" rows="3" cols="59"><%=EncodeHelper.javaStringToHtmlString(compoInst.getDescription())%></textarea></td>
-	</tr>
+
+	<ul class="fields">
+		<li class="field entireWidth">
+		<label class="txtlibform"><%=resource.getString("GML.name")%> </label>
+		<div class="champs"><input type="text" name="NameObject" id="compoName" size="60" maxlength="60" value="<%=EncodeHelper.javaStringToHtmlString(compoInst.getLabel())%>">&nbsp;<img src="<%=resource.getIcon("mandatoryField")%>" width="5" height="5" border="0"></div>
+	</li>
+
+	<li class="field entireWidth">
+		<label class="txtlibform"><%=resource.getString("GML.description")%></label>
+		<div class="champs"><textarea name="Description" id="compoDesc" rows="3" cols="59"><%=EncodeHelper.javaStringToHtmlString(compoInst.getDescription())%></textarea></div>
+	</li>
 	<% if (isInHeritanceEnable) { %>
-	<tr>
-		<td class="txtlibform" nowrap="nowrap" valign="top"><%=resource.getString("JSPP.inheritanceBlockedComponent") %> :</td>
-		<td align="left" valign="baseline" width="100%">
+
+	<li class="field entireWidth">
+		<label class="txtlibform"><%=resource.getString("JSPP.inheritanceBlockedComponent") %></label>
+		<div class="champs ">
 		<% if (compoInst.isInheritanceBlocked()) { %>
-			<input type="radio" name="InheritanceBlocked" value="true" checked="checked" /> <%=resource.getString("JSPP.inheritanceComponentNotUsed")%><br/>
-			<input type="radio" name="InheritanceBlocked" value="false" /> <%=resource.getString("JSPP.inheritanceComponentUsed")%>
+			<input class="radio" type="radio" name="InheritanceBlocked" value="true" checked="checked" /> <%=resource.getString("JSPP.inheritanceComponentNotUsed")%><br/>
+			<input class="radio newline" type="radio" name="InheritanceBlocked" value="false" /> <%=resource.getString("JSPP.inheritanceComponentUsed")%>
 		<% } else { %>
-			<input type="radio" name="InheritanceBlocked" value="true"/> <%=resource.getString("JSPP.inheritanceComponentNotUsed")%><br/>
-			<input type="radio" name="InheritanceBlocked" value="false" checked="checked" /> <%=resource.getString("JSPP.inheritanceComponentUsed")%>
+			<input class="radio" type="radio" name="InheritanceBlocked" value="true"/> <%=resource.getString("JSPP.inheritanceComponentNotUsed")%><br/>
+			<input class="radio newline" type="radio" name="InheritanceBlocked" value="false" checked="checked" /> <%=resource.getString("JSPP.inheritanceComponentUsed")%>
 		<% } %>
-		</td>
-	</tr>
+		</div>
+	</li>
 	<% } %>
-</table>
+</ul>
+</fieldset>
 <% if (parameters.size() > 0) { %>
-	<div id="parameters-header">
-		<span class="txtlibform"><%=resource.getString("JSPP.parameters") %></span>
-	</div>
+	 <fieldset class="skinFieldset parameters">
+      <legend><%=resource.getString("JSPP.parameters") %></legend>
 <% } %>
-<table border="0">
-<tr>
+
+  <ul class="fields">
 <%
 	boolean on2Columns = false;
 	if (parameters.size() >= 5) {
 		on2Columns = true;
 	}
 
-	if (on2Columns) {
-		out.println("<td>");
-		out.println("<table border=\"0\" width=\"100%\">");
-		for(int nI=0; parameters != null && nI < parameters.size(); nI++) {
-		  	LocalizedParameter parameter = parameters.get(nI);
-			if (nI%2 == 0) {
-				out.println("<tr valign=\"middle\">");
-			}
-
+	for(LocalizedParameter parameter : parameters) {
 			displayParameter(parameter, resource, out);
-
-			if (nI%2 != 0) {
-				out.println("</tr>");
-			} else {
-				out.println("<td width=\"40px\">&nbsp;</td>");
-			}
 		}
-		if (parameters.size()%2 != 0) {
-			out.println("<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>");
-			out.println("</tr>");
-		}
-		out.println("</table>");
-		out.println("</td>");
-	} else {
-		for(LocalizedParameter parameter : parameters) {
-		  	out.println("<tr valign=\"middle\">");
-			displayParameter(parameter, resource, out);
-			out.println("</tr>");
-		}
-	}
 
 	for(int nI=0; hiddenParameters != null && nI < hiddenParameters.size(); nI++) {
 	  	LocalizedParameter parameter = hiddenParameters.get(nI);
 		out.println("<input type=\"hidden\" name=\""+parameter.getName()+"\" value=\""+parameter.getValue()+"\"/>\n");
 	}
 %>
-	<tr align="left">
-		<td colspan="3"><br/>(<img border="0" src="<%=resource.getIcon("mandatoryField")%>" width="5" height="5"/> : <%=resource.getString("GML.requiredField")%>)</td>
-	</tr>
-</table>
-<%
-	out.println(board.printAfter());
 
+	</ul>
+	</fieldset>
+	<div class="legend"><img border="0" src="<%=resource.getIcon("mandatoryField")%>" width="5" height="5"/> : <%=resource.getString("GML.requiredField")%></div>
+
+<%
 	ButtonPane buttonPane = gef.getButtonPane();
 	buttonPane.addButton( gef.getFormButton(resource.getString("GML.validate"), "javascript:onClick=validate();", false));
 	buttonPane.addButton( gef.getFormButton(resource.getString("GML.cancel"), "javascript:onClick=cancel();", false));
-	out.println("<br/><center>"+buttonPane.print()+"</center>");
+	out.println("<div class='center'>"+buttonPane.print()+"</div>");
 	out.println(frame.printAfter());
     out.println(window.printAfter());
 %>

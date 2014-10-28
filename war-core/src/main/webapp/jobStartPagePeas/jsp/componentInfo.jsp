@@ -23,6 +23,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 --%>
+<%@page import="org.apache.commons.lang3.BooleanUtils"%>
 
 <%@page import="com.silverpeas.admin.localized.LocalizedOption"%>
 <%@page import="com.silverpeas.admin.localized.LocalizedParameter"%>
@@ -43,26 +44,28 @@ void displayParameter(LocalizedParameter parameter, ResourcesWrapper resource, J
 	String help = parameter.getHelp();
 	if (help != null) {
 	  	help = EncodeHelper.javaStringToHtmlString(help);
-		out.println("<td align=\"left\">");
+		out.println("<li class='field' id='"+parameter.getName()+"'>");
+
 		out.print("<img src=\""+resource.getIcon("JSPP.instanceHelpInfo")+"\" title=\""+help+"\" class=\"parameterInfo\"/>");
-		out.println("</td>");
+
 	} else {
-		out.println("<td align=\"left\" width=\"15\">&nbsp;</td>");
+		out.println("<li class='field' id='"+parameter.getName()+"'>");
+
 	}
 
-	out.println("<td class=\"textePetitBold\" nowrap valign=\"center\">");
-	out.println(parameter.getLabel() +" : ");
-	out.println("</td>");
-	out.println("<td align=\"left\" valign=\"top\">");
+	out.println("<label class='txtlibform'>");
+	out.println(parameter.getLabel());
+	out.println("</label>");
+	out.println("<div class='champs'>");
 	
 	// Value
 	boolean isSelect = parameter.isSelect() || parameter.isXmlTemplate();
 	if (parameter.isCheckbox()) {
 		String checked = "";
 		if (StringUtil.getBooleanValue(parameter.getValue())){
-			checked = "checked";
+			checked = "checked=\"checked\"";
         }
-		out.println("<input type=\"checkbox\" name=\""+parameter.getName()+"\" value=\""+parameter.getValue()+"\" "+checked+" disabled/>");
+		out.println("<input type=\"checkbox\" name=\""+parameter.getName()+"\" value=\""+parameter.getValue()+"\" "+checked+" disabled=\"disabled\"/>");
 	}
 	else if (isSelect)
 	{
@@ -92,9 +95,9 @@ void displayParameter(LocalizedParameter parameter, ResourcesWrapper resource, J
 				String value = radio.getValue();
 				String checked = "";
 				if (parameter.getValue() != null && parameter.getValue().toLowerCase().equals(value) || i==0) {
-					checked = "checked";
+					checked = "checked=\"checked\"";
                 }
-				out.println("<input type=\"radio\" name=\""+parameter.getName()+"\" value=\""+value+"\" "+checked+" disabled/>");
+				out.println("<input type=\"radio\" name=\""+parameter.getName()+"\" value=\""+value+"\" "+checked+" disabled=\"disabled\"/>");
 				out.println(name+"&nbsp;");
 			}		
 		}
@@ -104,18 +107,19 @@ void displayParameter(LocalizedParameter parameter, ResourcesWrapper resource, J
 			out.println(parameter.getValue());
 	  	}
 	}
-	out.println("</td>");
+	out.println("</div></li>");
 }
 %>
 
 <%
 ComponentInst 	compoInst 			= (ComponentInst) request.getAttribute("ComponentInst");
 String 			m_JobPeas 			= (String) request.getAttribute("JobPeas");
-List 			parameters 			= (List) request.getAttribute("Parameters");
+List<LocalizedParameter> parameters = (List<LocalizedParameter>) request.getAttribute("Parameters");
 List<ProfileInst> m_Profiles 		= (List<ProfileInst>) request.getAttribute("Profiles");
 boolean 		isInHeritanceEnable = ((Boolean)request.getAttribute("IsInheritanceEnable")).booleanValue();
 int				scope				= ((Integer) request.getAttribute("Scope")).intValue();
 int	 			maintenanceState 	= (Integer) request.getAttribute("MaintenanceState");
+boolean			popupMode			= BooleanUtils.toBoolean((Boolean) request.getAttribute("PopupMode"));
 
 if (scope == JobStartPagePeasSessionController.SCOPE_FRONTOFFICE) {
   //use default breadcrumb
@@ -155,13 +159,17 @@ for (ProfileInst theProfile : m_Profiles) {
 	}
 	
 	tabbedPane.addTab(prof,"RoleInstance?IdProfile="+theProfile.getId()+"&NameProfile="+theProfile.getName()+"&LabelProfile="+theProfile.getLabel(),false);
-}	
+}
+
+window.setPopup(popupMode);
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
 <title><%=resource.getString("GML.popupTitle")%></title>
 <view:looknfeel/>
+<link type="text/css" href="/silverpeas/util/styleSheets/fieldset.css" rel="stylesheet" />
 <view:includePlugin name="qtip"/>
 <script type="text/javascript" src="<%=m_context%>/util/javaScript/checkForm.js"></script>
 <script type="text/javascript" src="javascript/component.js"></script>
@@ -215,126 +223,114 @@ function clipboardCut() {
 </script>
 </head>
 <body id="admin-component">
-<form id="infoInstance" name="infoInstance" action="" method="post">
-  <input id="ComponentNum" name="ComponentNum" type="hidden"/>
-  <input id="Translation"  name="Translation"  type="hidden"/>
+
 <%
 out.println(window.printBefore());
 out.println(tabbedPane.print());
-out.println(frame.printBefore());
+
 %>
-<% if (maintenanceState >= JobStartPagePeasSessionController.MAINTENANCE_PLATFORM) { %>
-	<div class="inlineMessage">
-		<%=resource.getString("JSPP.maintenanceStatus."+maintenanceState)%>
-	</div>
-	<br clear="all"/>
-<% } %>
-<view:board>
-<table cellpadding="5" cellspacing="0" border="0" width="100%">
-	<tr>
-		<td class="textePetitBold" nowrap="nowrap"><%=resource.getString("GML.type") %> :</td>
-		<td align="left" width="100%"><img src="<%=m_ComponentIcon%>" class="componentIcon" alt=""/>&nbsp;<%=m_JobPeas%></td>
-	</tr>
-	<tr>
-		<td class="textePetitBold" nowrap="nowrap"><%=resource.getString("GML.name") %> :</td>
-    <td align="left" valign="baseline" width="100%" id="compoName"><%=EncodeHelper.javaStringToHtmlString(compoInst.getLabel(resource.getLanguage()))%></td>
-	</tr>
-	<% if (StringUtil.isDefined(compoInst.getDescription(resource.getLanguage()))) { %>
-		<tr>
-			<td class="textePetitBold" nowrap="nowrap" valign="top"><%=resource.getString("GML.description") %> :</td>
-			<td align="left" valign="top" width="100%" id="compoDesc"><%=EncodeHelper.javaStringToHtmlParagraphe(compoInst.getDescription(resource.getLanguage()))%></td>
-		</tr>
-	<% } %>
-	<% if (compoInst.getCreateDate() != null) { %>
-	<tr>
-		<td class="textePetitBold" nowrap="nowrap"><%=resource.getString("GML.creationDate") %> :</td>
-		<td align="left" valign="baseline" width="100%">
-			<%=resource.getOutputDateAndHour(compoInst.getCreateDate())%>
-			<% if (compoInst.getCreator() != null) { %> 
-				<%=resource.getString("GML.by") %> <view:username userId="<%=compoInst.getCreator().getId()%>" />
-			<% } %>
-		</td>
-	</tr>
-	<% } %>
-	<% if (compoInst.getUpdateDate() != null) { %>
-	<tr>
-		<td class="textePetitBold" nowrap="nowrap"><%=resource.getString("GML.updateDate") %> :</td>
-		<td align="left" valign="baseline" width="100%">
-			<%=resource.getOutputDateAndHour(compoInst.getUpdateDate())%>
-			<% if (compoInst.getUpdater() != null) { %>  
-				<%=resource.getString("GML.by") %> <view:username userId="<%=compoInst.getUpdater().getId()%>" />
-			<% } %>
-		</td>
-	</tr>
-	<% } %>
-	<% if (isInHeritanceEnable) { %>
-	<tr>
-		<td class="textePetitBold" nowrap="nowrap" valign="top"><%=resource.getString("JSPP.inheritanceBlockedComponent") %> :</td>
-		<td align="left" valign="baseline" width="100%">
-		<% if (compoInst.isInheritanceBlocked()) { %>
-			<%=resource.getString("JSPP.inheritanceComponentNotUsed")%>
-		<% } else { %>
-			<%=resource.getString("JSPP.inheritanceComponentUsed")%>
-		<% } %>
-		</td>
-	</tr>
-	<% } %>
-</table>
-<% if (parameters.size() > 0) { %>
-	<div id="parameters-header">
-		<span class="txtlibform"><%=resource.getString("JSPP.parameters") %></span>
-	</div>
-<% } %>
-<table border="0">
-	<tr>
-	<%
-	boolean on2Columns = false;
-	if (parameters.size() >= 5)
-		on2Columns = true;
-	
+<view:frame>
+  <% if (maintenanceState >= JobStartPagePeasSessionController.MAINTENANCE_PLATFORM) { %>
+
+  <div class="inlineMessage"> <%=resource.getString("JSPP.maintenanceStatus."+maintenanceState)%> </div>
+
+  <br clear="all"/>
+  <% } %>
+  <form id="infoInstance" name="infoInstance" action="" method="post">
+    <input id="ComponentNum" name="ComponentNum" type="hidden"/>
+    <input id="Translation"  name="Translation"  type="hidden"/>
+    <fieldset class="skinFieldset">
+
+      <legend class="without-img"><img src="<%=m_ComponentIcon%>" class="componentIcon" alt=""/>&nbsp;<%=m_JobPeas%></legend>
+      <ul class="fields">
+        <li class="field entireWidth">
+          <label class="txtlibform"><%=resource.getString("GML.name") %> </label>
+          <div class="champs"><%=EncodeHelper.javaStringToHtmlString(compoInst.getLabel(resource.getLanguage()))%></div>
+        </li>
+
+        <% if (StringUtil.isDefined(compoInst.getDescription(resource.getLanguage()))) { %>
+        <li class="field entireWidth">
+          <label class="txtlibform"><%=resource.getString("GML.description") %></label>
+          <div class="champs" id="compoDesc"><%=EncodeHelper.javaStringToHtmlParagraphe(compoInst.getDescription(resource.getLanguage()))%></div>
+        </li>
+        <% } %>
+
+
+        <% if (compoInst.getCreateDate() != null) { %>
+        <li class="field">
+
+          <label class="txtlibform"><%=resource.getString("GML.creationDate") %></label>
+
+          <div class="champs"> <%=resource.getOutputDateAndHour(compoInst.getCreateDate())%>
+            <% if (compoInst.getCreator() != null) { %>
+            <%=resource.getString("GML.by") %>
+            <view:username userId="<%=compoInst.getCreator().getId()%>" />
+            <% } %>
+          </div>
+        </li>
+        <% } %>
+
+        <% if (compoInst.getUpdateDate() != null) { %>
+        <li class="field">
+
+          <label class="txtlibform"><%=resource.getString("GML.updateDate") %></label>
+
+          <div class="champs"> <%=resource.getOutputDateAndHour(compoInst.getUpdateDate())%>
+            <% if (compoInst.getUpdater() != null) { %>
+            <%=resource.getString("GML.by") %>
+            <view:username userId="<%=compoInst.getUpdater().getId()%>" />
+            <% } %>
+          </div>
+        </li>
+        <% } %>
+
+        <% if (isInHeritanceEnable) { %>
+        <li class="field entireWidth">
+
+          <label class="txtlibform"><%=resource.getString("JSPP.inheritanceBlockedComponent") %></label>
+          <div class="champs">
+
+            <% if (compoInst.isInheritanceBlocked()) { %>
+            <%=resource.getString("JSPP.inheritanceComponentNotUsed")%>
+            <% } else { %>
+            <%=resource.getString("JSPP.inheritanceComponentUsed")%>
+            <% } %>
+          </div>
+        </li>
+        <% } %>
+      </ul>
+    </fieldset>
+
+    <% if (parameters.size() > 0) { %>
+    <fieldset class="skinFieldset parameters readOnly">
+
+      <legend><%=resource.getString("JSPP.parameters") %></legend>
+
+      <% } %>
+      <ul class="fields">
+        <%
+
+
 	LocalizedParameter parameter = null;
-	if (on2Columns)
-	{
-		out.println("<td>");
-		out.println("<table border=\"0\" width=\"100%\">");
-		for(int nI=0; parameters != null && nI < parameters.size(); nI++)
+
+	for(int nI=0; parameters != null && nI < parameters.size(); nI++)
 		{
-			parameter = (LocalizedParameter) parameters.get(nI);
-			if (nI%2 == 0)
-				out.println("<tr>");
+			parameter = parameters.get(nI);
 
 			displayParameter(parameter, resource, out);
 
-			if (nI%2 != 0)
-				out.println("</tr>");
-			else
-				out.println("<td width=\"40px\">&nbsp;</td>");
 		}
-		if (parameters.size()%2 != 0)
-		{
-			out.println("<td>&nbsp;</td><td>&nbsp;</td>");
-			out.println("</tr>");
-		}
-		out.println("</table>");
-		out.println("</td>");
-	} else {
-		for(int nI=0; parameters != null && nI < parameters.size(); nI++)
-		{
-			parameter = (LocalizedParameter) parameters.get(nI);
-
-			out.println("<tr>");
-			displayParameter(parameter, resource, out);
-			out.println("</tr>");
-		}
-	}
-%>	
-	</tr>
-	</table>
-</view:board>
+		%>
+      </ul>
+      <% if (parameters.size() > 0) { %>
+    </fieldset>
+    <% } %>
+  </form>
+</view:frame>
 <%
-out.println(frame.printAfter());
+
 out.println(window.printAfter());
 %>
-</form>
+
 </body>
 </html>
