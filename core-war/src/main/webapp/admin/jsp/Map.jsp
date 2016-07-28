@@ -177,6 +177,7 @@
         </tr>
         <tr>
           <td valign="top">
+          <ul class="sm-map">
             <%
               if (m_asPrivateDomainsIds != null) {
                 for (int nK = 0; nK < m_asPrivateDomainsIds.length; nK++) {
@@ -191,6 +192,7 @@
                 }
               }
             %>
+            </ul>
           </td>
         </tr>
       </table>
