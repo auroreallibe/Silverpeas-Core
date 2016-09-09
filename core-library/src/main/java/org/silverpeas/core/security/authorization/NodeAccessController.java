@@ -77,8 +77,9 @@ public class NodeAccessController extends AbstractAccessController<NodePK>
     if (isRoleVerificationRequired) {
       Set<SilverpeasRole> userRoles = getUserRoles(userId, nodePK, context);
       if (sharingOperation) {
-        SilverpeasRole greaterUserRole = SilverpeasRole.getGreaterFrom(userRoles);
-        return greaterUserRole.isGreaterThanOrEquals(SilverpeasRole.admin);
+        SilverpeasRole highestUserRole = SilverpeasRole.getHighestFrom(userRoles);
+        return highestUserRole != null &&
+            highestUserRole.isGreaterThanOrEquals(SilverpeasRole.admin);
       }
       return isUserAuthorized(userRoles);
     }

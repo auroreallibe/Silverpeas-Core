@@ -98,23 +98,23 @@ public class PublicationAccessController extends AbstractAccessController<Public
 
     // Verifying roles if necessary
     if (isRoleVerificationRequired) {
-      SilverpeasRole greatestUserRole = SilverpeasRole.getGreatestFrom(userRoles);
-      if (greatestUserRole == null) {
-        greatestUserRole = SilverpeasRole.reader;
+      SilverpeasRole highestUserRole = SilverpeasRole.getHighestFrom(userRoles);
+      if (highestUserRole == null) {
+        highestUserRole = SilverpeasRole.reader;
       }
 
       if (sharingOperation) {
-        return greatestUserRole.isGreaterThanOrEquals(SilverpeasRole.admin);
+        return highestUserRole.isGreaterThanOrEquals(SilverpeasRole.admin);
       }
 
-      if (SilverpeasRole.writer.equals(greatestUserRole)) {
+      if (SilverpeasRole.writer.equals(highestUserRole)) {
         PublicationDetail publicationDetail =
             context.get(PUBLICATION_DETAIL_KEY, PublicationDetail.class);
         authorized =
             publicationDetail != null && (userId.equals(publicationDetail.getCreatorId())) ||
                 getComponentAccessController().isCoWritingEnabled(pubPk.getInstanceId());
       } else {
-        authorized = greatestUserRole.isGreaterThan(SilverpeasRole.writer);
+        authorized = highestUserRole.isGreaterThan(SilverpeasRole.writer);
       }
     }
     return authorized;

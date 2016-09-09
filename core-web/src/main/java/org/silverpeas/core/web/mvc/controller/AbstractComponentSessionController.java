@@ -484,7 +484,7 @@ public abstract class AbstractComponentSessionController implements ComponentSes
 
   @Override
   public SilverpeasRole getHighestSilverpeasUserRole() {
-    SilverpeasRole highestUserRole = SilverpeasRole.getGreaterFrom(getSilverpeasUserRoles());
+    SilverpeasRole highestUserRole = SilverpeasRole.getHighestFrom(getSilverpeasUserRoles());
     if (highestUserRole == null) {
       highestUserRole = SilverpeasRole.reader;
     }
