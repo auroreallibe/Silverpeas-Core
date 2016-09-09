@@ -47,12 +47,12 @@ function openConnectedUsers() {
 
 (function() {
   whenSilverpeasReady(function() {
-    spServerEventSource.addEventListener('USER_SESSION', refreshData, 'connectedUserListener');
     function refreshData(serverEvent) {
       var data = extendsObject({
         nbConnectedUsers : 0, isOpening : false, isClosing : false
       }, JSON.parse(serverEvent.data));
       setConnectedUsers(data.nbConnectedUsers);
     }
+    spServerEventSource.addEventListener('USER_SESSION', refreshData, 'connectedUserListener');
   });
 })();

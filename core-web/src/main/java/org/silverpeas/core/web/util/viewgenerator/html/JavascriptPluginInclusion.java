@@ -468,6 +468,7 @@ public class JavascriptPluginInclusion {
     xhtml.addElement(link(jqueryCssPath + STYLESHEET_JQUERY_CALENDAR));
     xhtml.addElement(link(stylesheetPath + STYLESHEET_SILVERPEAS_CALENDAR));
     xhtml.addElement(script(jqueryPath + JQUERY_CALENDAR));
+    xhtml.addElement(script(angularjsServicesPath + SILVERPEAS_CALENDAR));
     xhtml.addElement(script(javascriptPath + SILVERPEAS_CALENDAR));
     return xhtml;
   }

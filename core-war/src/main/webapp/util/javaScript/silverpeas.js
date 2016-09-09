@@ -433,45 +433,67 @@ if (typeof SilverpeasClass === 'undefined') {
 }
 
 if (!window.SilverpeasAjaxConfig) {
-  SilverpeasAjaxConfig = function(anUrl) {
-    var _self = this;
-    var url = anUrl;
-    var method = 'GET';
-    var headers = {};
-    var parameters = {};
-    this.withHeaders = function(headerParams) {
-      headers = (headerParams) ?  headerParams : {};
-      return _self;
-    };
-    this.withParams = function(params) {
-      parameters = (params) ? params : {};
-      return _self;
-    };
-    this.withHeader = function(name, value) {
-      headers[name] = encodeURIComponent(value);
-      return _self;
-    };
-    this.withParam = function(name, value) {
-      parameters[name] = encodeURIComponent(value);
-      return _self;
-    };
-    this.byPostMethod = function() {
-      method = 'POST';
-      return _self;
-    };
-    this.getUrl = function() {
-      return (method !== 'POST') ? sp.formatUrl(url, parameters) : url;
-    };
-    this.getMethod = function() {
-      return method;
-    };
-    this.getParams = function() {
-      return parameters;
-    };
-    this.getHeaders = function() {
-      return headers;
-    };
-  };
+  SilverpeasRequestConfig = SilverpeasClass.extend({
+    initialize : function(url) {
+      this.url = url;
+      this.method = 'GET';
+      this.parameters = {};
+    },
+    withParams : function(params) {
+      this.parameters = (params) ? params : {};
+      return this;
+    },
+    withParam : function(name, value) {
+      this.parameters[name] = encodeURIComponent(value);
+      return this;
+    },
+    byPostMethod : function() {
+      this.method = 'POST';
+      return this;
+    },
+    getUrl : function() {
+      return (this.method !== 'POST') ? sp.formatUrl(this.url, this.parameters) : this.url;
+    },
+    getMethod : function() {
+      return this.method;
+    },
+    getParams : function() {
+      return this.parameters;
+    }
+  });
+  SilverpeasFormConfig = SilverpeasRequestConfig.extend({
+    initialize : function(url) {
+      this._super(url);
+      this.target = '';
+    },
+    getUrl : function() {
+      return this.url;
+    },
+    toTarget : function(target) {
+      this.target = (target) ? target : '';
+      return this;
+    },
+    getTarget : function() {
+      return this.target;
+    }
+  });
+  SilverpeasAjaxConfig = SilverpeasRequestConfig.extend({
+    initialize : function(url) {
+      this._super(url);
+      this.headers = {};
+    },
+    withHeaders : function(headerParams) {
+      this.headers = (headerParams) ? headerParams : {};
+      return this;
+    },
+    withHeader : function(name, value) {
+      this.headers[name] = encodeURIComponent(value);
+      return this;
+    },
+    getHeaders : function() {
+      return this.headers;
+    }
+  });
 }
 
 if (typeof window.silverpeasAjax === 'undefined') {
@@ -554,6 +576,38 @@ if (typeof window.silverpeasAjax === 'undefined') {
       }
     });
   }
+
+  function silverpeasFormSubmit(silverpeasFormConfig) {
+    if (!(silverpeasFormConfig instanceof SilverpeasFormConfig)) {
+      sp.log.error(
+          "silverpeasFormSubmit function need an instance of SilverpeasFormConfig as first parameter.");
+      return;
+    }
+    window.top.jQuery.progressMessage();
+    var selector = "form[target=silverpeasFormSubmit]";
+    var form = document.querySelector(selector);
+    if (!form) {
+      form = document.createElement('form');
+      var formContainer = document.createElement('div');
+      formContainer.style.display = 'none';
+      formContainer.appendChild(form);
+      document.body.appendChild(formContainer);
+    }
+    form.setAttribute('action', silverpeasFormConfig.getUrl());
+    form.setAttribute('method', silverpeasFormConfig.getMethod());
+    form.setAttribute('target', silverpeasFormConfig.getTarget());
+    form.innerHTML = '';
+    applyTokenSecurity(form.parentNode);
+    for (var paramKey in silverpeasFormConfig.getParams()) {
+      var paramValue = silverpeasFormConfig.getParams()[paramKey];
+      var paramInput = document.createElement("input");
+      paramInput.setAttribute("type", "hidden");
+      paramInput.setAttribute("name", paramKey);
+      paramInput.value = paramValue;
+      form.appendChild(paramInput);
+    }
+    form.submit();
+  }
 }
 
 if(typeof window.whenSilverpeasReady === 'undefined') {
@@ -627,6 +681,9 @@ if (typeof window.sp === 'undefined') {
           console && console.log('Silverpeas - DEBUG - ' + msg);
         }
       }
+    },
+    formConfig : function(url) {
+      return new SilverpeasFormConfig(url);
     },
     ajaxConfig : function(url) {
       return new SilverpeasAjaxConfig(url);

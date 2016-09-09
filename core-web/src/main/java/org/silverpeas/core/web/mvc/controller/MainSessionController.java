@@ -20,32 +20,36 @@
  */
 package org.silverpeas.core.web.mvc.controller;
 
-import org.silverpeas.core.personalization.UserPreferences;
-import org.silverpeas.core.personalization.service.PersonalizationServiceProvider;
-import org.silverpeas.core.web.mvc.util.AlertUser;
-import org.silverpeas.core.contribution.contentcontainer.content.ContentManager;
-import org.silverpeas.core.contribution.contentcontainer.content.GlobalSilverContent;
-import org.silverpeas.core.web.selection.Selection;
 import org.silverpeas.core.admin.component.model.ComponentInst;
 import org.silverpeas.core.admin.component.model.Parameter;
+import org.silverpeas.core.admin.component.model.PersonalComponentInstance;
+import org.silverpeas.core.admin.component.model.SilverpeasComponentInstance;
 import org.silverpeas.core.admin.service.OrganizationController;
 import org.silverpeas.core.admin.service.OrganizationControllerProvider;
 import org.silverpeas.core.admin.space.SpaceInst;
 import org.silverpeas.core.admin.space.SpaceInstLight;
 import org.silverpeas.core.admin.user.constant.UserAccessLevel;
+import org.silverpeas.core.admin.user.model.SilverpeasRole;
 import org.silverpeas.core.admin.user.model.UserDetail;
 import org.silverpeas.core.clipboard.ClipboardException;
 import org.silverpeas.core.clipboard.ClipboardSelection;
 import org.silverpeas.core.clipboard.service.Clipboard;
 import org.silverpeas.core.clipboard.service.MainClipboard;
+import org.silverpeas.core.contribution.contentcontainer.content.ContentManager;
+import org.silverpeas.core.contribution.contentcontainer.content.GlobalSilverContent;
 import org.silverpeas.core.exception.SilverpeasException;
 import org.silverpeas.core.pdc.pdc.model.PdcException;
 import org.silverpeas.core.pdc.pdc.service.GlobalPdcManager;
 import org.silverpeas.core.pdc.pdc.service.PdcManager;
 import org.silverpeas.core.pdc.pdc.service.PdcSettings;
+import org.silverpeas.core.personalization.UserPreferences;
+import org.silverpeas.core.personalization.service.PersonalizationServiceProvider;
 import org.silverpeas.core.silvertrace.SilverTrace;
 import org.silverpeas.core.util.ServiceProvider;
 import org.silverpeas.core.util.StringUtil;
+import org.silverpeas.core.util.logging.SilverLogger;
+import org.silverpeas.core.web.mvc.util.AlertUser;
+import org.silverpeas.core.web.selection.Selection;
 import org.silverpeas.core.web.session.SessionCloseable;
 import org.silverpeas.core.web.subscription.SubscriptionContext;
 
@@ -54,6 +58,7 @@ import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static org.silverpeas.core.admin.service.AdministrationServiceProvider.getAdminService;
 
@@ -417,41 +422,49 @@ public class MainSessionController implements Clipboard, SessionCloseable {
 
   /**
    * Helper function. Create a new CurrentSessionControl object and fill it with the values of the
-   * current space Id and component Id passed in parameters
+   * current space Id and component instance Id passed in parameters
    */
-  public ComponentContext createComponentContext(String sSpaceId,
-      String sComponent) {
-    ComponentContext newInfos = new ComponentContext();
+  @SuppressWarnings("ConstantConditions")
+  public ComponentContext createComponentContext(String spaceId, String componentInstanceId) {
+    ComponentContext componentContext = new ComponentContext();
 
     try {
       // Set the space
-      if (sSpaceId != null) {
-        SpaceInstLight spaceInst = getAdminService().getSpaceInstLightById(sSpaceId);
+      if (spaceId != null) {
+        SpaceInstLight spaceInst = getAdminService().getSpaceInstLightById(spaceId);
 
-        newInfos.setCurrentSpaceId(sSpaceId);
-        newInfos.setCurrentSpaceName(spaceInst.getName(getFavoriteLanguage()));
+        componentContext.setCurrentSpaceId(spaceId);
+        componentContext.setCurrentSpaceName(spaceInst.getName(getFavoriteLanguage()));
       }
       // Set the current component and profiles
-      if (sComponent != null) {
+      if (componentInstanceId != null) {
         String sCurCompoLabel;
-        ComponentInst componentInst = getAdminService().getComponentInst(sComponent);
+        final SilverpeasComponentInstance componentInst;
+        Optional<PersonalComponentInstance> personalComponentInstance =
+            PersonalComponentInstance.from(componentInstanceId);
+        if (personalComponentInstance.isPresent()) {
+          componentInst = personalComponentInstance.get();
+        } else {
+          componentInst = getAdminService().getComponentInst(componentInstanceId);
+        }
 
-        // if (componentInst.getLabel() != null &&
-        // componentInst.getLabel().length() != 0)
         sCurCompoLabel = componentInst.getLabel(getFavoriteLanguage());
-        newInfos.setCurrentComponentId(sComponent);
-        newInfos.setCurrentComponentName(componentInst.getName());
-        newInfos.setCurrentComponentLabel(sCurCompoLabel);
-        newInfos.setCurrentProfile(getAdminService().getCurrentProfiles(this.getUserId(),
-            componentInst));
+        componentContext.setCurrentComponentId(componentInstanceId);
+        componentContext.setCurrentComponentName(componentInst.getName());
+        componentContext.setCurrentComponentLabel(sCurCompoLabel);
+        if (componentInst.isPersonal()) {
+          componentContext.setCurrentProfile(new String[]{SilverpeasRole.admin.getName()});
+        } else {
+          componentContext.setCurrentProfile(getAdminService()
+              .getCurrentProfiles(this.getUserId(), (ComponentInst) componentInst));
+        }
       }
     } catch (Exception e) {
-      SilverTrace.error("peasCore",
-          "MainSessionController.createComponentContext",
-          "peasCore.EX_CANT_CREATE_COMPONENT_CONTEXT", "sSpaceId=" + sSpaceId
-          + " | sComponent=" + sComponent, e);
+      SilverLogger.getLogger(this)
+          .error("cannot create context from spaceId ''{0}'' and componentInstanceId ''{0}''",
+              new String[]{spaceId, componentInstanceId}, e);
     }
-    return newInfos;
+    return componentContext;
   }
 
   // ------------------- ContentManager Functions -----------------------------

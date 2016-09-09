@@ -81,7 +81,7 @@
         res = "<a href=\"#\" onclick=\"" + url + "\">" + label + "</a>";
       }
       else {
-        res = "<a href=\"" + "<c:url value="/" />" + url + "\" target=\"" + target + "\">" + label + "</a>";
+        res = "<a href=\"" + webContext + url + "\" target=\"" + target + "\">" + label + "</a>";
       }
       return res;
     }
