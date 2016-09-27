@@ -23,14 +23,11 @@
  */
 package org.silverpeas.core.web.http;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import org.apache.commons.fileupload.FileItem;
-import org.silverpeas.core.SilverpeasRuntimeException;
 import org.silverpeas.core.admin.user.model.User;
 import org.silverpeas.core.i18n.I18NHelper;
 import org.silverpeas.core.io.upload.FileUploadManager;
 import org.silverpeas.core.io.upload.UploadedFile;
-import org.silverpeas.core.util.DateUtil;
 import org.silverpeas.core.util.ResourceLocator;
 import org.silverpeas.core.util.SettingBundle;
 import org.silverpeas.core.util.StringUtil;
@@ -41,7 +38,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +47,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.silverpeas.core.web.http.RequestParameterDecoder.*;
 
 /**
  * An HTTP request decorating an HTTP servlet request with some additional methods and by changing
@@ -400,7 +398,7 @@ public class HttpRequest extends HttpServletRequestWrapper {
    * @throws java.text.ParseException if the parameter value isn't a date.
    */
   public Date getParameterAsDate(String dateParameterName) throws ParseException {
-    return asDate(getParameter(dateParameterName), null);
+    return asDate(getParameter(dateParameterName), null, getUserLanguage());
   }
 
   /**
@@ -413,7 +411,8 @@ public class HttpRequest extends HttpServletRequestWrapper {
    */
   public Date getParameterAsDate(String dateParameterName, String hourParameterName)
       throws ParseException {
-    return asDate(getParameter(dateParameterName), getParameter(hourParameterName));
+    return asDate(getParameter(dateParameterName), getParameter(hourParameterName),
+        getUserLanguage());
   }
 
   /**
@@ -427,97 +426,6 @@ public class HttpRequest extends HttpServletRequestWrapper {
   public <E extends Enum> E getParameterAsEnum(String enumValue, Class<E> enumClass) {
     return asEnum(getParameter(enumValue), enumClass);
   }
-
-  private <T> boolean asBoolean(T object) {
-    if (object instanceof Boolean) {
-      return (Boolean) object;
-    } else if (object instanceof String) {
-      String typedObject = ((String) object).trim();
-      return StringUtil.getBooleanValue(typedObject);
-    }
-    if (object != null) {
-      throw new IllegalArgumentException();
-    }
-    return false;
-  }
-
-  private <T> Long asLong(T object) {
-    if (object instanceof Number) {
-      return ((Number) object).longValue();
-    } else if (object instanceof String) {
-      String typedObject = ((String) object).trim();
-      if (StringUtil.isLong(typedObject)) {
-        return Long.valueOf(typedObject);
-      }
-      return null;
-    }
-    if (object != null) {
-      throw new IllegalArgumentException();
-    }
-    return null;
-  }
-
-  private <T> Integer asInteger(T object) {
-    if (object instanceof Number) {
-      return ((Number) object).intValue();
-    } else if (object instanceof String) {
-      String typedObject = ((String) object).trim();
-      if (StringUtil.isInteger(typedObject)) {
-        return Integer.valueOf(typedObject);
-      }
-      return null;
-    }
-    if (object != null) {
-      throw new IllegalArgumentException();
-    }
-    return null;
-  }
-
-  private <T> Date asDate(T date, T hour) throws ParseException {
-    if (date instanceof String) {
-      String typedDate = (String) date;
-      String typedHour = (String) hour;
-      if (StringUtil.isDefined(typedDate)) {
-        return DateUtil.stringToDate(typedDate, typedHour, getUserLanguage());
-      }
-      return null;
-    }
-    if (date != null) {
-      throw new IllegalArgumentException();
-    }
-    return null;
-  }
-
-  @SuppressWarnings({"unchecked", "ConstantConditions"})
-  private <E extends Enum> E asEnum(String enumValue, Class<E> enumClass) {
-    Method fromMethod = null;
-
-    for (Method method : enumClass.getMethods()) {
-      Class[] methodParameterTypes = method.getParameterTypes();
-      if (method.getAnnotation(JsonCreator.class) != null && methodParameterTypes.length == 1 &&
-          methodParameterTypes[0].isAssignableFrom(String.class)) {
-        fromMethod = method;
-        break;
-      }
-    }
-
-    if (fromMethod == null) {
-      try {
-        fromMethod = enumClass.getMethod("valueOf", String.class);
-      } catch (Exception e) {
-        throw new SilverpeasRuntimeException(e);
-      }
-    }
-
-    try {
-      return (E) fromMethod.invoke(null, enumValue);
-    } catch (Exception ignore) {
-      // ignore this exception as it should never occur
-    }
-
-    return null;
-  }
-
 
   /**
    * Is the content in this request is encoded in a multipart stream.

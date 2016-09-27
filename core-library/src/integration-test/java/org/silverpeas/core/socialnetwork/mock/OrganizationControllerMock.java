@@ -29,6 +29,7 @@ import org.silverpeas.core.admin.component.model.CompoSpace;
 import org.silverpeas.core.admin.component.model.ComponentInst;
 import org.silverpeas.core.admin.component.model.ComponentInstLight;
 import org.silverpeas.core.admin.component.model.ComponentSearchCriteria;
+import org.silverpeas.core.admin.component.model.SilverpeasComponentInstance;
 import org.silverpeas.core.admin.component.model.WAComponent;
 import org.silverpeas.core.admin.domain.model.Domain;
 import org.silverpeas.core.admin.space.SpaceInst;
@@ -38,6 +39,7 @@ import org.silverpeas.core.admin.service.OrganizationController;
 import org.silverpeas.core.admin.user.model.Group;
 import org.silverpeas.core.admin.user.model.GroupsSearchCriteria;
 import org.silverpeas.core.admin.user.model.ProfileInst;
+import org.silverpeas.core.admin.user.model.SilverpeasRole;
 import org.silverpeas.core.admin.user.model.User;
 import org.silverpeas.core.admin.user.model.UserDetail;
 import org.silverpeas.core.admin.user.model.UserDetailsSearchCriteria;
@@ -46,8 +48,11 @@ import org.silverpeas.core.util.ListSlice;
 
 import javax.inject.Named;
 import javax.jws.soap.SOAPBinding;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
 
@@ -106,11 +111,6 @@ public class OrganizationControllerMock implements OrganizationController {
   }
 
   @Override
-  public Map<String, WAComponent> getAllComponents() {
-    return null;
-  }
-
-  @Override
   public CompoSpace[] getCompoForUser(final String sUserId, final String sCompoName) {
     return new CompoSpace[0];
   }
@@ -133,6 +133,12 @@ public class OrganizationControllerMock implements OrganizationController {
 
   @Override
   public String getComponentParameterValue(final String sComponentId, final String parameterName) {
+    return null;
+  }
+
+  @Override
+  public Optional<SilverpeasComponentInstance> getComponentInstance(
+      final String componentInstanceIdentifier) {
     return null;
   }
 
@@ -255,6 +261,12 @@ public class OrganizationControllerMock implements OrganizationController {
   public UserDetail[] getUsers(final String sPrefixTableName, final String sComponentName,
       final String sProfile) {
     return new UserDetail[0];
+  }
+
+  @Override
+  public Collection<SilverpeasRole> getUserSilverpeasRolesOn(final User user,
+      final String componentInstanceIdentifier) {
+    return Collections.emptyList();
   }
 
   @Override

@@ -86,7 +86,7 @@ public class SilverpeasAsyncContext implements AsyncContext {
       @Override
       public void onTimeout(final AsyncEvent event) throws IOException {
         SilverLogger.getLogger(this).debug("Async context is timed out ({0})", context.toString());
-        unregisterAsyncContext(context);
+        event.getAsyncContext().complete();
       }
 
       @Override

@@ -23,28 +23,98 @@
  */
 
 /* some web navigators (like IE < 9) doesn't support completely the javascript standard (ECMA) */
+
 if (!Array.prototype.indexOf) {
-  Array.prototype.indexOf = function(elt /*, from*/) {
-    var len = this.length >>> 0;
+  Object.defineProperty(Array.prototype, 'add', {
+    enumerable : false, value : function(elt /*, from*/) {
+      var len = this.length >>> 0;
 
-    var from = Number(arguments[1]) || 0;
-    from = (from < 0) ? Math.ceil(from) : Math.floor(from);
-    if (from < 0) {
-      from += len;
-    }
-
-    for (; from < len; from++) {
-      if (from in this && this[from] === elt) {
-        return from;
+      var from = Number(arguments[1]) || 0;
+      from = (from < 0) ? Math.ceil(from) : Math.floor(from);
+      if (from < 0) {
+        from += len;
       }
+
+      for (; from < len; from++) {
+        if (from in this && this[from] === elt) {
+          return from;
+        }
+      }
+      return -1;
     }
-    return -1;
-  };
+  });
+}
+
+if (!Array.prototype.addElement) {
+  Object.defineProperty(Array.prototype, 'indexOfElement', {
+    enumerable : false, value : function(elt /*, discriminator*/) {
+      var discriminator = arguments.length > 1 ? arguments[1] : undefined;
+      var discLeft = discriminator, discRight = discriminator;
+      var isPos = typeof discriminator === 'number';
+      var isDisc = typeof discriminator === 'string';
+      if (isDisc) {
+        var discParts = discriminator.split('=', 2);
+        if (discParts.length > 1) {
+          discLeft = discParts[0];
+          discRight = discParts[1];
+        }
+      }
+      for (var i = 0; i < this.length; i++) {
+        var element = this[i];
+        if ((element === elt) || (isPos && discriminator === i) ||
+            (isDisc && element[discLeft] === elt[discRight])) {
+          return i;
+        }
+      }
+      return -1;
+    }
+  });
+  Object.defineProperty(Array.prototype, 'getElement', {
+    enumerable : false, value : function(elt /*, discriminator*/) {
+      var index = this.indexOfElement.apply(this, arguments);
+      if (index >= 0) {
+        return this[index];
+      }
+      return undefined;
+    }
+  });
+  Object.defineProperty(Array.prototype, 'addElement', {
+    enumerable : false, value : function(elt) {
+      this.push(elt);
+    }
+  });
+  Object.defineProperty(Array.prototype, 'updateElement', {
+    enumerable : false, value : function(elt /*, discriminator*/) {
+      var index = this.indexOfElement.apply(this, arguments);
+      if (index >= 0) {
+        this[index] = elt;
+        return true;
+      }
+      return false;
+    }
+  });
+  Object.defineProperty(Array.prototype, 'removeElement', {
+    enumerable : false, value : function(elt /*, discriminator*/) {
+      var index = this.indexOfElement.apply(this, arguments);
+      if (index >= 0) {
+        this.splice(index, 1);
+        return true;
+      }
+      return false;
+    }
+  });
 }
 
 if (!String.prototype.startsWith) {
   String.prototype.startsWith = function(str) {
     return this.indexOf(str) === 0;
+  };
+}
+
+if (!String.prototype.endsWith) {
+  String.prototype.endsWith = function(str) {
+    var endIndex = this.indexOf(str) + str.length;
+    return endIndex === this.length;
   };
 }
 
@@ -68,11 +138,32 @@ if (!String.prototype.isNotDefined) {
   };
 }
 
+if (!String.prototype.nbChars) {
+  String.prototype.nbChars = function() {
+    return this.split(/\n/).length + this.length;
+  };
+}
+
 if (!String.prototype.unescapeHTML) {
   String.prototype.unescapeHTML = function() {
     var div = document.createElement("div");
     div.innerHTML = this;
     return div.innerText || div.textContent || '';
+  };
+}
+
+if (!String.prototype.convertNewLineAsHtml) {
+  String.prototype.convertNewLineAsHtml = function() {
+    return this.replace(/\n/g, '<br/>');
+  };
+}
+
+if (!String.prototype.noHTML) {
+  String.prototype.noHTML = function() {
+    return this
+        .replace(/&/g, '&amp;')
+        .replace(/>/g, '&gt;')
+        .replace(/</g, '&lt;');
   };
 }
 
@@ -136,6 +227,9 @@ if (!window.StringUtil) {
     this.isNotDefined = function(aString) {
       return !_self.isDefined(aString);
     };
+    this.nbChars = function(aString) {
+      return (typeof aString === 'string') ? aString.nbChars() : 0;
+    };
   };
 }
 
@@ -153,7 +247,7 @@ if (!window.SilverpeasError) {
       return _self;
     };
     this.existsAtLeastOne = function() {
-      return _errors.length;
+      return _errors.length > 0;
     };
     this.show = function() {
       if (_self.existsAtLeastOne()) {
@@ -161,7 +255,7 @@ if (!window.SilverpeasError) {
         for (var i = 0; i < _errors.length; i++) {
           jQuery('<div>').append(_errors[i]).appendTo(errorContainer);
         }
-        notyError(errorContainer);
+        jQuery.popup.error(errorContainer.html());
         _self.reset();
         return true;
       }
@@ -376,22 +470,22 @@ if (!window.SilverpeasPluginSettings) {
 
 if (typeof extendsObject === 'undefined') {
   /**
-   * Extends an object.
+   * Merge the contents of two or more objects together into the first object.
+   * By default it performs a deep copy (recursion). To perform light copy (no recursion), please
+   * give false as first argument. Giving true as first argument as no side effect and perform a
+   * deep copy.
    * @returns {*}
    */
   function extendsObject() {
-    var target, key, object, val;
-    target = arguments[0];
-    object = arguments[1];
-    for (key in object) {
-      val = object[key];
-      if (typeof target[key] === 'object' && typeof val === 'object') {
-        extendsObject(target[key], val);
-      } else {
-        target[key] = val;
-      }
+    var params = [];
+    Array.prototype.push.apply(params, arguments);
+    var firstArgumentType = params[0];
+    if (typeof firstArgumentType === 'object') {
+      params.splice(0, 0, true);
+    } else if (typeof firstArgumentType === 'boolean' && !params[0]) {
+      params.shift();
     }
-    return target;
+    return jQuery.extend.apply(this, params);
   }
 }
 
@@ -430,6 +524,61 @@ if (typeof SilverpeasClass === 'undefined') {
     }
     return child;
   };
+}
+if (!window.SilverpeasCache) {
+  (function() {
+
+    function __clearCache(storage, name) {
+      storage.removeItem(name);
+    }
+
+    function __getCache(storage, name) {
+      var cache = storage.getItem(name);
+      if (!cache) {
+        cache = {};
+        __setCache(storage, name, cache);
+      } else {
+        cache = JSON.parse(cache);
+      }
+      return cache;
+    }
+
+    function __setCache(storage, name, cache) {
+      storage.setItem(name, JSON.stringify(cache));
+    }
+
+    window.SilverpeasCache = SilverpeasClass.extend({
+      initialize : function(cacheName) {
+        this.cacheName = cacheName;
+      },
+      getCacheStorage : function() {
+        return localStorage;
+      },
+      clear : function() {
+        __clearCache(this.getCacheStorage(), this.cacheName);
+      },
+      put : function(key, value) {
+        var cache = __getCache(this.getCacheStorage(), this.cacheName);
+        cache[key] = value;
+        __setCache(this.getCacheStorage(), this.cacheName, cache);
+      },
+      get : function(key) {
+        var cache = __getCache(this.getCacheStorage(), this.cacheName);
+        return cache[key];
+      },
+      remove : function(key) {
+        var cache = __getCache(this.getCacheStorage(), this.cacheName);
+        delete cache[key];
+        __setCache(this.getCacheStorage(), this.cacheName, cache);
+      }
+    });
+
+    window.SilverpeasSessionCache = SilverpeasCache.extend({
+      getCacheStorage : function() {
+        return sessionStorage;
+      }
+    });
+  })();
 }
 
 if (!window.SilverpeasAjaxConfig) {
@@ -497,6 +646,11 @@ if (!window.SilverpeasAjaxConfig) {
 }
 
 if (typeof window.silverpeasAjax === 'undefined') {
+  if (Object.getOwnPropertyNames) {
+    XMLHttpRequest.prototype.responseAsJson = function() {
+      return typeof this.response === 'string' ? JSON.parse(this.response) : this.response;
+    }
+  }
   function silverpeasAjax(options) {
     if (typeof options === 'string') {
       options = {url : options};
@@ -513,6 +667,18 @@ if (typeof window.silverpeasAjax === 'undefined') {
       };
       if (ajaxConfig.getMethod().startsWith('P')) {
         params.data = ajaxConfig.getParams();
+        if (!ajaxConfig.getHeaders()['Content-Type']) {
+          if (typeof params.data === 'object') {
+            var formData = new FormData();
+            for (var key in params.data) {
+              formData.append(key, params.data[key]);
+            }
+            params.data = formData;
+          } else {
+            params.data = "" + params.data;
+            params.headers['Content-Type'] = 'text/plain; charset=UTF-8';
+          }
+        }
       }
     }
     return new Promise(function(resolve, reject) {
@@ -556,8 +722,10 @@ if (typeof window.silverpeasAjax === 'undefined') {
             resolve({
               readyState : jqXHR.readyState,
               responseText : jqXHR.responseText,
-              status : jqXHR.status,
-              statusText : jqXHR.statusText
+              status : jqXHR.status, statusText : jqXHR.statusText, responseAsJson : function() {
+                return typeof jqXHR.responseText === 'string' ? JSON.parse(jqXHR.responseText) :
+                    jqXHR.responseText;
+              }
             });
           },
           error : function(jqXHR, textStatus, errorThrown) {
@@ -661,25 +829,135 @@ if (typeof window.sp === 'undefined') {
       warningActivated : true,
       errorActivated : true,
       debugActivated : false,
-      info : function(msg) {
-        if (this.infoActivated) {
-          console && console.info('Silverpeas - INFO - ' + msg);
+      formatMessage : function() {
+        var message = "";
+        for (var i = 0; i < arguments.length; i++) {
+          var item = arguments[i];
+          if (typeof item !== 'string') {
+            item = JSON.stringify(item);
+          }
+          if (i > 0) {
+            message += " ";
+          }
+          message += item;
+        }
+        return message;
+      },
+      info : function() {
+        if (sp.log.infoActivated) {
+          console &&
+          console.info('SP - INFO - ' + sp.log.formatMessage.apply(sp.log, arguments));
         }
       },
-      warning : function(msg) {
-        if (this.warningActivated) {
-          console && console.warn('Silverpeas - WARNING - ' + msg);
+      warning : function() {
+        if (sp.log.warningActivated) {
+          console &&
+          console.warn('SP - WARNING - ' + sp.log.formatMessage.apply(sp.log, arguments));
         }
       },
-      error : function(msg) {
-        if (this.errorActivated) {
-          console && console.error('Silverpeas - ERROR - ' + msg);
+      error : function() {
+        if (sp.log.errorActivated) {
+          console &&
+          console.error('SP - ERROR - ' + sp.log.formatMessage.apply(sp.log, arguments));
         }
       },
-      debug : function(msg) {
-        if (this.debugActivated) {
-          console && console.log('Silverpeas - DEBUG - ' + msg);
+      debug : function() {
+        if (sp.log.debugActivated) {
+          console &&
+          console.log('SP - DEBUG - ' + sp.log.formatMessage.apply(sp.log, arguments));
         }
+      }
+    },
+    promise : {
+      deferred : function() {
+        var deferred = {};
+        deferred.promise = new Promise(function(resolve, reject){
+          deferred.resolve = resolve;
+          deferred.reject = reject;
+        });
+        return deferred;
+      },
+      isOne : function(object) {
+        return object && typeof object.then === 'function';
+      },
+      whenAllResolved : function(promises) {
+        return Promise.all(promises);
+      },
+      resolveDirectlyWith : function(data) {
+        return Promise.resolve(data);
+      },
+      rejectDirectlyWith : function(data) {
+        return Promise.reject(data);
+      }
+    },
+    moment : {
+      /**
+       * Adjusts the the time minutes in order to get a rounded time.
+       * @param date a data like the one given to the moment constructor.
+       * @param hasToCurrentTime true to set current time, false otherwise
+       * @private
+       */
+      adjustTimeMinutes : function(date, hasToCurrentTime) {
+        var myMoment = moment(date);
+        if (hasToCurrentTime) {
+          var $timeToSet = moment();
+          myMoment.hour($timeToSet.hour());
+          myMoment.minute($timeToSet.minute());
+        }
+        var minutes = myMoment.minutes();
+        var minutesToAdjust = minutes ? minutes % 10 : 0;
+        var offset = minutesToAdjust < 5 ? 0 : 10;
+        return myMoment.add((offset - minutesToAdjust), 'm');
+      },
+      /**
+       * Gets the nth day of month from the given moment in order to display it as a date.
+       * @param date a data like the one given to the moment constructor.
+       * @private
+       */
+      nthDayOfMonth : function(date) {
+        var dayInMonth = moment(date).date();
+        return Math.ceil(dayInMonth / 7);
+      },
+      /**
+       * Formats the given moment in order to display it as a date.
+       * @param date a data like the one given to the moment constructor.
+       * @private
+       */
+      displayAsDate : function(date) {
+        return moment(date).format('L');
+      },
+      /**
+       * Formats the given moment in order to display it as a date time.
+       * @param date a data like the one given to the moment constructor.
+       * @private
+       */
+      displayAsDateTime : function(date) {
+        return sp.moment.displayAsDate(date) + moment(date).format('LT');
+      },
+      /**
+       * Replaces from the given text date or date time which are specified into an ISO format.
+       * Two kinds of replacement are performed :
+       * - "${[ISO string date],date}" is replaced by a readable date
+       * - "${[ISO string date],datetime}" is replaced by a readable date and time
+       * @param text
+       * @returns {*}
+       */
+      formatText : function(text) {
+        var formattedText = text;
+        var dateOrDateTimeRegExp = /\$\{([^,]+),date(time|)}/g;
+        var match = dateOrDateTimeRegExp.exec(text);
+        while (match) {
+          var toReplace = match[0];
+          var temporal = match[1];
+          var isTime = match[2];
+          if (isTime) {
+            formattedText = formattedText.replace(toReplace, sp.moment.displayAsDateTime(temporal));
+          } else {
+            formattedText = formattedText.replace(toReplace, sp.moment.displayAsDate(temporal));
+          }
+          match = dateOrDateTimeRegExp.exec(text);
+        }
+        return formattedText;
       }
     },
     formConfig : function(url) {

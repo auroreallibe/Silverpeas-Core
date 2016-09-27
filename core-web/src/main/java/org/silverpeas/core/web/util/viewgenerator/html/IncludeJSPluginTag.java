@@ -93,7 +93,7 @@ public class IncludeJSPluginTag extends SimpleTagSupport {
           includePopup(xhtml);
           break;
         case calendar:
-          includeCalendar(xhtml);
+          includeCalendar(xhtml, getLanguage());
           break;
         case iframeajaxtransport:
           includeIFrameAjaxTransport(xhtml);
@@ -127,6 +127,12 @@ public class IncludeJSPluginTag extends SimpleTagSupport {
           break;
         case toggle:
           includeToggle(xhtml);
+          break;
+        case tabs:
+          includeTabsWebComponent(xhtml);
+          break;
+        case colorpicker:
+          includeColorPickerWebComponent(xhtml);
           break;
         case lightslideshow:
           includeLightweightSlideshow(xhtml);

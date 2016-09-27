@@ -400,7 +400,7 @@ public abstract class AbstractJpaEntityRepository<T extends IdentifiableEntity>
     return parameters.applyTo(deleteQuery).executeUpdate();
   }
 
-  private <E> Collection<Collection<E>> split(Collection<E> collection) {
+  protected <E> Collection<Collection<E>> split(Collection<E> collection) {
     return CollectionUtil.split(collection, getMaximumItemsInClause());
   }
 

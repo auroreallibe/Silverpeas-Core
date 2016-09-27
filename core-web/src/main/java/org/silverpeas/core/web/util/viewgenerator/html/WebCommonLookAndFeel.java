@@ -26,7 +26,7 @@ package org.silverpeas.core.web.util.viewgenerator.html;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.ecs.ElementContainer;
 import org.apache.ecs.xhtml.script;
-import org.silverpeas.core.admin.component.model.ComponentInstLight;
+import org.silverpeas.core.admin.component.model.SilverpeasComponentInstance;
 import org.silverpeas.core.admin.service.OrganizationControllerProvider;
 import org.silverpeas.core.util.ResourceLocator;
 import org.silverpeas.core.util.SettingBundle;
@@ -127,9 +127,9 @@ class WebCommonLookAndFeel {
     String defaultComponentCSS = null;
     String specificComponentCSS = null;
     if (StringUtil.isDefined(componentId)) {
-      ComponentInstLight component =
-          OrganizationControllerProvider.getOrganisationController().getComponentInstLight(
-              componentId);
+      SilverpeasComponentInstance component =
+          OrganizationControllerProvider.getOrganisationController()
+              .getComponentInstance(componentId).orElse(null);
       if (component != null) {
         String componentName = component.getName();
         String genericComponentName = getGenericComponentName(componentName);
@@ -181,6 +181,9 @@ class WebCommonLookAndFeel {
         getJavaScriptTag(contextPath + "/util/javaScript/polyfill/eventListenerIEPolyfill.min.js"));
     code.append(
         getJavaScriptTag(contextPath + "/util/javaScript/polyfill/silverpeas-polyfills.js"));
+
+    code.append(getJavaScriptTag(contextPath + "/util/javaScript/" +
+        GraphicElementFactory.MOMENT_JS));
 
     // append javascript
     // append javascript
@@ -276,6 +279,8 @@ class WebCommonLookAndFeel {
   @SuppressWarnings("StringBufferReplaceableByString")
   private String addGlobalJSVariable(String language) {
     StringBuilder globalJSVariableBuilder = new StringBuilder();
+    globalJSVariableBuilder.append("moment.locale('").append(language).append("');")
+        .append(STR_NEW_LINE);
     globalJSVariableBuilder.append("var userLanguage = '").append(language).append("';")
         .append(STR_NEW_LINE);
     globalJSVariableBuilder.append("function getUserLanguage() { return userLanguage;")

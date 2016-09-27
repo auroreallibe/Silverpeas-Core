@@ -21,6 +21,7 @@
 package org.silverpeas.core.web.look;
 
 import org.silverpeas.core.admin.component.model.ComponentInstLight;
+import org.silverpeas.core.admin.component.model.PersonalComponentInstance;
 import org.silverpeas.core.admin.service.OrganizationController;
 import org.silverpeas.core.admin.service.OrganizationControllerProvider;
 import org.silverpeas.core.admin.space.SpaceInst;
@@ -176,7 +177,8 @@ public class LookSilverpeasV5Helper extends LookHelper {
   public void setComponentIdAndSpaceIds(String spaceId, String subSpaceId, String componentId) {
     setComponentId(componentId);
 
-    if (!StringUtil.isDefined(spaceId)) {
+    if (!StringUtil.isDefined(spaceId) &&
+        !PersonalComponentInstance.from(componentId).isPresent()) {
       List<SpaceInst> spacePath = organizationController.getSpacePathToComponent(componentId);
       if (!spacePath.isEmpty()) {
         SpaceInst space = spacePath.get(0);

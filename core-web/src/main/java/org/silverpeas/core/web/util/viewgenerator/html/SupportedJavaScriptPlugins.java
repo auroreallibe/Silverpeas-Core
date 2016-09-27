@@ -144,6 +144,14 @@ public enum SupportedJavaScriptPlugins {
    */
   toggle,
   /**
+   * Silverpeas plugin to handle tabs
+   */
+  tabs,
+  /**
+   * Silverpeas plugin to handle color picker
+   */
+  colorpicker,
+  /**
    * Lightweight slideshow. Easy to use but not only a few features.
    */
   lightslideshow,
