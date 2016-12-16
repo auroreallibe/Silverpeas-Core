@@ -22,32 +22,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.silverpeas.core.importexport.ical.ical4j;
+package org.silverpeas.core.calendar;
 
-import net.fortuna.ical4j.util.HostInfo;
-import net.fortuna.ical4j.util.InetAddressHostInfo;
-import org.silverpeas.core.util.ResourceLocator;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.net.SocketException;
+/**
+ * @author Yohann Chastagnier
+ */
+public class CalendarMockBuilder {
 
-public class OffLineInetAddressHostInfo implements HostInfo {
-  private InetAddressHostInfo hostInfo;
+  private Calendar calendar = mock(Calendar.class);
 
-  @Override
-  public String getHostName() {
-    String hostName;
-    try {
-      hostName = getInetAddressHostInfo().getHostName();
-    } catch (SocketException | NullPointerException ex) {
-      hostName = ResourceLocator.getGeneralSettingBundle().getString("httpServerBase", "localhost");
-    }
-    return hostName;
+  public static CalendarMockBuilder from(String componentInstanceId) {
+    CalendarMockBuilder builder = new CalendarMockBuilder();
+    builder.withComponentInstanceId(componentInstanceId);
+    return builder;
   }
 
-  private synchronized InetAddressHostInfo getInetAddressHostInfo() throws SocketException {
-    if (hostInfo == null) {
-      hostInfo = new InetAddressHostInfo();
-    }
-    return hostInfo;
+  public CalendarMockBuilder withId(String id) {
+    when(calendar.getId()).thenReturn(id);
+    return this;
+  }
+
+  public CalendarMockBuilder withTitle(String title) {
+    when(calendar.getTitle()).thenReturn(title);
+    return this;
+  }
+
+  public Calendar build() {
+    return calendar;
+  }
+
+  private CalendarMockBuilder withComponentInstanceId(final String componentInstanceId) {
+    when(calendar.getComponentInstanceId()).thenReturn(componentInstanceId);
+    return this;
   }
 }

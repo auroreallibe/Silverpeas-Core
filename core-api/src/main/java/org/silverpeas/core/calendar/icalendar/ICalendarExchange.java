@@ -22,32 +22,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.silverpeas.core.importexport.ical.ical4j;
+package org.silverpeas.core.calendar.icalendar;
 
-import net.fortuna.ical4j.util.HostInfo;
-import net.fortuna.ical4j.util.InetAddressHostInfo;
-import org.silverpeas.core.util.ResourceLocator;
+import org.silverpeas.core.util.ServiceProvider;
 
-import java.net.SocketException;
+/**
+ * Provides some services around ICALENDAR data exchange.
+ * @author Yohann Chastagnier
+ */
+public interface ICalendarExchange {
 
-public class OffLineInetAddressHostInfo implements HostInfo {
-  private InetAddressHostInfo hostInfo;
-
-  @Override
-  public String getHostName() {
-    String hostName;
-    try {
-      hostName = getInetAddressHostInfo().getHostName();
-    } catch (SocketException | NullPointerException ex) {
-      hostName = ResourceLocator.getGeneralSettingBundle().getString("httpServerBase", "localhost");
-    }
-    return hostName;
+  static ICalendarExchange get() {
+    return ServiceProvider.getService(ICalendarExchange.class);
   }
 
-  private synchronized InetAddressHostInfo getInetAddressHostInfo() throws SocketException {
-    if (hostInfo == null) {
-      hostInfo = new InetAddressHostInfo();
-    }
-    return hostInfo;
-  }
+  /**
+   * Exports events according to the given settings.
+   * @param export the export settings.
+   * @throws ICalendarException if an error occurs during the export.
+   */
+  void export(ICalendarExport export) throws ICalendarException;
 }
