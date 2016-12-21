@@ -23,19 +23,20 @@
  */
 package org.silverpeas.core.notification.user.builder;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import org.apache.commons.lang3.StringUtils;
+import org.silverpeas.core.admin.component.model.SilverpeasComponentInstance;
 import org.silverpeas.core.admin.service.OrganizationControllerProvider;
 import org.silverpeas.core.notification.user.DefaultUserNotification;
 import org.silverpeas.core.notification.user.UserNotification;
-import org.silverpeas.core.util.Link;
-import org.apache.commons.lang3.StringUtils;
-
 import org.silverpeas.core.notification.user.model.NotificationResourceData;
-import org.silverpeas.core.ui.DisplayI18NHelper;
 import org.silverpeas.core.template.SilverpeasTemplate;
 import org.silverpeas.core.template.SilverpeasTemplateFactory;
+import org.silverpeas.core.ui.DisplayI18NHelper;
+import org.silverpeas.core.util.Link;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Yohann Chastagnier
@@ -147,10 +148,10 @@ public abstract class AbstractTemplateUserNotificationBuilder<T> extends
    */
   protected SilverpeasTemplate createTemplate() {
     SilverpeasTemplate template;
-    if (OrganizationControllerProvider.getOrganisationController()
-        .isComponentExist(getComponentInstanceId()) || OrganizationControllerProvider.
-        getOrganisationController()
-        .isToolAvailable(getComponentInstanceId())) {
+    Optional<SilverpeasComponentInstance> instance =
+        SilverpeasComponentInstance.getById(getComponentInstanceId());
+    if (instance.isPresent() || OrganizationControllerProvider.
+        getOrganisationController().isToolAvailable(getComponentInstanceId())) {
       template = SilverpeasTemplateFactory.createSilverpeasTemplateOnComponents(getTemplatePath());
     } else {
       template = SilverpeasTemplateFactory.createSilverpeasTemplateOnCore(getTemplatePath());

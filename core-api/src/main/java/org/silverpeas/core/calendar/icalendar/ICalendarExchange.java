@@ -38,8 +38,16 @@ public interface ICalendarExchange {
 
   /**
    * Exports events according to the given settings.
-   * @param export the export settings.
+   * @param anExport the export settings.
    * @throws ICalendarException if an error occurs during the export.
    */
-  void export(ICalendarExport export) throws ICalendarException;
+  void doExportOf(ICalendarExport anExport) throws ICalendarException;
+
+  /**
+   * Imports events according to the given settings.<br/>
+   * Events are never deleted.
+   * @param anImport the anImport settings.
+   * @throws ICalendarException if an error occurs during the import.
+   */
+  void doImportOf(ICalendarImport anImport) throws ICalendarException;
 }

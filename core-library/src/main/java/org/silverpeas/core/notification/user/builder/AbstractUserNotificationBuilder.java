@@ -23,6 +23,7 @@
  */
 package org.silverpeas.core.notification.user.builder;
 
+import org.silverpeas.core.notification.user.RemoveSenderRecipientBehavior;
 import org.silverpeas.core.notification.user.client.ExternalRecipient;
 import org.silverpeas.core.notification.user.client.GroupRecipient;
 import org.silverpeas.core.notification.user.client.NotificationManagerSettings;
@@ -207,12 +208,13 @@ public abstract class AbstractUserNotificationBuilder implements UserNotificatio
         getNotificationMetaData().addUserRecipientToExclude(new UserRecipient(userId));
       }
     }
-    if (this instanceof UserSubscriptionNotificationBehavior &&
-        NotificationManagerSettings.isRemoveSenderFromSubscriptionNotificationReceiversEnabled() &&
-        StringUtil.isInteger(getSender())) {
-      // The sender must be excluded from receivers when the notification concerns a subscription
-      // and if it is enabled from the global parameter.
-      getNotificationMetaData().addUserRecipientToExclude(new UserRecipient(getSender()));
+    if (this instanceof RemoveSenderRecipientBehavior && StringUtil.isInteger(getSender())) {
+      if (!(this instanceof UserSubscriptionNotificationBehavior)
+          || NotificationManagerSettings.isRemoveSenderFromSubscriptionNotificationReceiversEnabled()) {
+        // The sender must be excluded from receivers when the notification concerns a subscription
+        // and if it is enabled from the global parameter.
+        getNotificationMetaData().addUserRecipientToExclude(new UserRecipient(getSender()));
+      }
     }
 
     if (CollectionUtil.isNotEmpty(groupIdsToNotify)) {
