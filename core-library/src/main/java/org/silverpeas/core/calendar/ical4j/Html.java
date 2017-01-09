@@ -32,55 +32,54 @@ import net.fortuna.ical4j.validate.ValidationException;
 
 public class Html extends Property implements Escapable {
 
-	private static final long serialVersionUID = 7287564228220558361L;
-	private static final String HTML = "X-ALT-DESC;FMTTYPE=text/html";
+  public static final String X_ALT_DESC = "X-ALT-DESC";
 
-	private String value;
+  private static final long serialVersionUID = 7287564228220558361L;
+  private static final String HTML = X_ALT_DESC + ";FMTTYPE=text/html";
 
-	/**
-	 * Default constructor.
-	 */
-	public Html() {
-		super(HTML, PropertyFactoryImpl.getInstance());
-	}
+  private String value;
 
-	/**
-	 * @param aValue
-	 *            a value string for this component
-	 */
-	public Html(final String aValue) {
-		super(HTML, PropertyFactoryImpl.getInstance());
+  /**
+   * Default constructor.
+   */
+  public Html() {
+    super(HTML, PropertyFactoryImpl.getInstance());
+  }
+
+  /**
+   * @param aValue a value string for this component
+   */
+  public Html(final String aValue) {
+    super(HTML, PropertyFactoryImpl.getInstance());
     setValue(aValue);
-	}
+  }
 
-	/**
-	 * @param aList
-	 *            a list of parameters for this component
-	 * @param aValue
-	 *            a value string for this component
-	 */
-	public Html(final ParameterList aList, final String aValue) {
-		super(HTML, aList, PropertyFactoryImpl.getInstance());
-		setValue(aValue);
-	}
+  /**
+   * @param aList a list of parameters for this component
+   * @param aValue a value string for this component
+   */
+  public Html(final ParameterList aList, final String aValue) {
+    super(HTML, aList, PropertyFactoryImpl.getInstance());
+    setValue(aValue);
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public final void validate() throws ValidationException {
-	}
+  /**
+   * {@inheritDoc}
+   */
+  public final void validate() throws ValidationException {
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public final void setValue(final String aValue) {
-		this.value = aValue;
-	}
+  /**
+   * {@inheritDoc}
+   */
+  public final String getValue() {
+    return value;
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public final String getValue() {
-		return value;
-	}
+  /**
+   * {@inheritDoc}
+   */
+  public final void setValue(final String aValue) {
+    this.value = aValue;
+  }
 }
