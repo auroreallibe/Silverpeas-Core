@@ -253,7 +253,7 @@
         User.getCurrentRequester().getUserPreferences().getLanguage());
     String errorMessage = chatBundle.getString("chat.server.notAvailable");
     %>
-    notyError("<%= errorMessage %>", {timeout : 500000});
+    notyError("<%= errorMessage %>", {timeout : 10000});
     </c:otherwise>
     </c:choose>
   })();
