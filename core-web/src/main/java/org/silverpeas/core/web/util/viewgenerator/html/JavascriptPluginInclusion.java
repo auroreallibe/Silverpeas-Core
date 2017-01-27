@@ -486,6 +486,7 @@ public class JavascriptPluginInclusion {
 
   public static ElementContainer includeCalendar(final ElementContainer xhtml,
       final String language) {
+    includeQTip(xhtml);
     includeTabsWebComponent(xhtml);
     includeColorPickerWebComponent(xhtml);
     includeDatePicker(xhtml, language);
@@ -539,6 +540,7 @@ public class JavascriptPluginInclusion {
     xhtml.addElement(script(angularjsDirectivesPath + calendarPath + SILVERPEAS_CALENDAR));
     xhtml.addElement(script(angularjsDirectivesPath + calendarPath + "silverpeas-calendar-list.js"));
     xhtml.addElement(script(angularjsDirectivesPath + calendarPath + "silverpeas-calendar-event-form.js"));
+    xhtml.addElement(script(angularjsDirectivesPath + calendarPath + "silverpeas-calendar-event-view.js"));
     xhtml.addElement(script(angularjsControllersPath + calendarPath + SILVERPEAS_CALENDAR));
     return xhtml;
   }
